@@ -1,0 +1,44 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+#board {
+    display: inline-block;
+    margin: 20px auto;
+}
+
+.row {
+    display: flex;
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-direction: column;
+}
+
+.row:nth-child(even) .cell:nth-child(odd),
+.row:nth-child(odd) .cell:nth-child(even) {
+    background-color: #000; /* Nero */
+    color: #fff; /* Colore del testo per i pezzi su sfondo nero */
+}
+
+.row:nth-child(even) .cell:nth-child(even),
+.row:nth-child(odd) .cell:nth-child(odd) {
+    background-color: #fff; /* Bianco */
+    color: #000; /* Colore del testo per i pezzi su sfondo bianco */
+}
+
+.selected {
+    border: 2px solid red;
+}
+
+.piece-info {
+    font-size: 12px;
+}

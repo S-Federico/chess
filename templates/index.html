@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h1>Chess Game</h1>
+    <div id="board">
+        {% for r in range(8) %}
+            <div class="row">
+                {% for c in range(8) %}
+                    <div class="cell" onclick="selectCell({{ r }}, {{ c }}, this)">
+                        {% if board.griglia[r][c] %}
+                            <div>
+                                {% if board.griglia[r][c].tipo == 'Re' and board.griglia[r][c].colore == 'bianco' %}
+                                    &#9812; <!-- Re bianco -->
+                                {% elif board.griglia[r][c].tipo == 'Queen' and board.griglia[r][c].colore == 'bianco' %}
+                                    &#9813; <!-- Regina bianca -->
+                                {% elif board.griglia[r][c].tipo == 'Torre' and board.griglia[r][c].colore == 'bianco' %}
+                                    &#9814; <!-- Torre bianca -->
+                                {% elif board.griglia[r][c].tipo == 'Alfiere' and board.griglia[r][c].colore == 'bianco' %}
+                                    &#9815; <!-- Alfiere bianco -->
+                                {% elif board.griglia[r][c].tipo == 'Cavallo' and board.griglia[r][c].colore == 'bianco' %}
+                                    &#9816; <!-- Cavallo bianco -->
+                                {% elif board.griglia[r][c].tipo == 'Pedone' and board.griglia[r][c].colore == 'bianco' %}
+                                    &#9817; <!-- Pedone bianco -->
+                                {% elif board.griglia[r][c].tipo == 'Re' and board.griglia[r][c].colore == 'nero' %}
+                                    &#9818; <!-- Re nero -->
+                                {% elif board.griglia[r][c].tipo == 'Queen' and board.griglia[r][c].colore == 'nero' %}
+                                    &#9819; <!-- Regina nera -->
+                                {% elif board.griglia[r][c].tipo == 'Torre' and board.griglia[r][c].colore == 'nero' %}
+                                    &#9820; <!-- Torre nera -->
+                                {% elif board.griglia[r][c].tipo == 'Alfiere' and board.griglia[r][c].colore == 'nero' %}
+                                    &#9821; <!-- Alfiere nero -->
+                                {% elif board.griglia[r][c].tipo == 'Cavallo' and board.griglia[r][c].colore == 'nero' %}
+                                    &#9822; <!-- Cavallo nero -->
+                                {% elif board.griglia[r][c].tipo == 'Pedone' and board.griglia[r][c].colore == 'nero' %}
+                                    &#9823; <!-- Pedone nero -->
+                                {% endif %}
+                            </div>
+                            <div class="piece-info">
+                                {{ board.griglia[r][c].attacco }}/{{ board.griglia[r][c].vita }}
+                            </div>
+                        {% else %}
+                            &nbsp;
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+    <div id="message"></div>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
