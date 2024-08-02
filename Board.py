@@ -1,5 +1,5 @@
 from stockfish import Stockfish
-
+import logging
 from Piece import Piece
 
 
@@ -8,6 +8,8 @@ class Board:
         self.stockfish=stockfish
         # Inizializza una griglia 8x8 con None per rappresentare una scacchiera vuota
         self.griglia = [[None for _ in range(8)] for _ in range(8)]
+
+        self.moves_log = []  # Lista per registrare le mosse
 
         # Posizionamento dei pezzi bianchi
         self.griglia[0][0] = Piece('Torre', 'bianco', (0, 0))
@@ -51,6 +53,8 @@ class Board:
         # Trasforma le coordinate in notazione scacchistica
         move = chr(cp + ord('a')) + str(8 - rp) + chr(cm + ord('a')) + str(8 - rm)
         print(f"[DEBUG] Mossa tradotta in notazione scacchistica: {move}")
+
+        self.moves_log.append(move)  # Registra la mossa nel log
 
         # Controlla se la mossa comporta una cattura
         c = self.stockfish.will_move_be_a_capture(move)
@@ -97,22 +101,32 @@ class Board:
         white_king_alive = False
         black_king_alive = False
 
-        # Scorri tutte le caselle della griglia
         for row in self.griglia:
             for piece in row:
-                if piece is not None:
-                    if piece.tipo == 'Re':
-                        if piece.colore == 'bianco':
-                            white_king_alive = True
-                        elif piece.colore == 'nero':
-                            black_king_alive = True
+                if piece is not None and piece.tipo == 'Re':
+                    if piece.colore == 'bianco':
+                        white_king_alive = True
+                    elif piece.colore == 'nero':
+                        black_king_alive = True
 
-        # Se uno dei re non è più vivo, il gioco è finito
         if not white_king_alive:
             print("Il Re bianco è stato catturato! Il gioco è finito. I neri vincono!")
+            self.save_log()  # Salva il log al termine del gioco
             return True
         elif not black_king_alive:
             print("Il Re nero è stato catturato! Il gioco è finito. I bianchi vincono!")
+            self.save_log()  # Salva il log al termine del gioco
             return True
 
-        # Se entrambi i re
+        return False
+
+    def save_log(self):
+        # Imposta il file di log per aggiungere nuove mosse invece di sovrascrivere
+        logging.basicConfig(filename='game_log.txt', level=logging.INFO, format='%(message)s', filemode='a')
+
+        logging.info("Log delle mosse della partita:")
+        for move in self.moves_log:
+            logging.info(move)
+        logging.info("-" * 40)  # Separatore tra partite
+
+        print("Log delle mosse salvato in 'game_log.txt'.")
