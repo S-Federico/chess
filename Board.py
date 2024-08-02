@@ -98,35 +98,37 @@ class Board:
                 f"[DEBUG] Pezzo spostato: {self.griglia[rm][cm].tipo} ({self.griglia[rm][cm].colore}) alla posizione ({rm}, {cm})")
 
     def is_game_finished(self):
-        white_king_alive = False
-        black_king_alive = False
+        # Controlla se Stockfish indica che la partita è finita
+        stockfish_evaluation = self.stockfish.get_evaluation()
 
-        for row in self.griglia:
-            for piece in row:
-                if piece is not None and piece.tipo == 'Re':
-                    if piece.colore == 'bianco':
-                        white_king_alive = True
-                    elif piece.colore == 'nero':
-                        black_king_alive = True
-
-        if not white_king_alive:
-            print("Il Re bianco è stato catturato! Il gioco è finito. I neri vincono!")
+        if stockfish_evaluation['type'] == 'mate' and stockfish_evaluation['value'] == 1:
+            print("Scacco matto! Il gioco è finito. I bianchi vincono!")
             self.save_log()  # Salva il log al termine del gioco
             return True
-        elif not black_king_alive:
-            print("Il Re nero è stato catturato! Il gioco è finito. I bianchi vincono!")
+        elif stockfish_evaluation['type'] == 'mate' and stockfish_evaluation['value'] == -1:
+            print("Scacco matto! Il gioco è finito. I neri vincono!")
             self.save_log()  # Salva il log al termine del gioco
             return True
 
+        # Aggiungere altri controlli di fine partita se necessario (es. patta)
         return False
 
     def save_log(self):
-        # Imposta il file di log per aggiungere nuove mosse invece di sovrascrivere
-        logging.basicConfig(filename='game_log.txt', level=logging.INFO, format='%(message)s', filemode='a')
+        # Configura un logger separato per il gioco
+        game_logger = logging.getLogger('game_logger')
+        game_logger.setLevel(logging.INFO)
 
-        logging.info("Log delle mosse della partita:")
+        # Crea un handler per scrivere su file
+        file_handler = logging.FileHandler('game_log.txt', mode='a')
+        file_handler.setFormatter(logging.Formatter('%(message)s'))
+
+        # Aggiungi l'handler al logger
+        if not game_logger.handlers:
+            game_logger.addHandler(file_handler)
+
+        game_logger.info("Log delle mosse della partita:")
         for move in self.moves_log:
-            logging.info(move)
-        logging.info("-" * 40)  # Separatore tra partite
+            game_logger.info(move)
+        game_logger.info("-" * 40)  # Separatore tra partite
 
         print("Log delle mosse salvato in 'game_log.txt'.")

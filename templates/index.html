@@ -42,7 +42,7 @@
                                 {% endif %}
                             </div>
                             <div class="piece-info">
-                                {{ board.griglia[r][c].attacco }}/{{ board.griglia[r][c].vita }}
+                                {{ board.griglia[r][c].colore[0].upper() }} {{ board.griglia[r][c].attacco }}/{{ board.griglia[r][c].vita }}
                             </div>
                         {% else %}
                             &nbsp;
