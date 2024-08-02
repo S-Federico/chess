@@ -1,2 +1,6 @@
-# chess
-cli chess game for testing purpose of gameplay mechanics against stockfish, in a modified version of chess
+# Chess
+CLI chess game for testing gameplay mechanics against Stockfish, featuring a modified version of chess.
+
+```bash
+pip install flask stockfish
+```
