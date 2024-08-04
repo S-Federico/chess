@@ -114,7 +114,9 @@ class Board:
             fen_rows.append(fen_row)
 
         # Modifica qui per far sì che Stockfish giochi come nero
-        fen = "/".join(fen_rows) + f" {nextturn} KQkq - 0 1"
+        #fen = "/".join(fen_rows) + f" {nextturn} KQkq - 0 1"
+        fen = "/".join(fen_rows) + f" {nextturn} - - 0 1"
+        print("FEN:",fen)
         return fen
 
     def get_piece_char(self, piece):
@@ -130,7 +132,11 @@ class Board:
 
     def is_game_finished(self):
         # Controlla se Stockfish indica che la partita è finita
-        stockfish_evaluation = self.stockfish.get_evaluation()
+        try:
+            stockfish_evaluation = self.stockfish.get_evaluation()
+        except Exception as e:
+            print("ERROR:", e)
+            return True
 
         if stockfish_evaluation['type'] == 'mate' and stockfish_evaluation['value'] == 1:
             print("Scacco matto! Il gioco è finito. I bianchi vincono!")
