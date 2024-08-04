@@ -27,11 +27,16 @@ def move():
     stockfish_move = f"{chr(cp + ord('a'))}{8 - rp}{chr(cm + ord('a'))}{8 - rm}"
     if stockfish.is_move_correct(stockfish_move):
         board.makemove(rp, cp, rm, cm)
+        # Aggiorna sempre la posizione di Stockfish
+        fen = board.generate_fen("b")
+        board.stockfish.set_fen_position(fen)
         if board.is_game_finished():
             return jsonify(status="finished", message="Game Over!")
         else:
+            print(stockfish.get_board_visual())
             return jsonify(status="ok", message="Move made.")
     else:
+        print(stockfish.get_board_visual())
         return jsonify(status="error", message="Invalid move.")
 
 
@@ -62,9 +67,14 @@ def ai_move():
 
         board.makemove(rp, cp, rm, cm)
 
+    # Aggiorna sempre la posizione di Stockfish
+    fen = board.generate_fen("w")
+    board.stockfish.set_fen_position(fen)
+
     if board.is_game_finished():
         return jsonify(status="finished", message="Game Over!")
     else:
+        print(stockfish.get_board_visual())
         return jsonify(status="ok", message="AI move made.")
 
 

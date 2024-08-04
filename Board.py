@@ -11,29 +11,29 @@ class Board:
 
         self.moves_log = []  # Lista per registrare le mosse
 
-        # Posizionamento dei pezzi bianchi
-        self.griglia[0][0] = Piece('Torre', 'bianco', (0, 0))
-        self.griglia[0][1] = Piece('Cavallo', 'bianco', (0, 1))
-        self.griglia[0][2] = Piece('Alfiere', 'bianco', (0, 2))
-        self.griglia[0][3] = Piece('Queen', 'bianco', (0, 3))
-        self.griglia[0][4] = Piece('Re', 'bianco', (0, 4))
-        self.griglia[0][5] = Piece('Alfiere', 'bianco', (0, 5))
-        self.griglia[0][6] = Piece('Cavallo', 'bianco', (0, 6))
-        self.griglia[0][7] = Piece('Torre', 'bianco', (0, 7))
+        # Posizionamento dei pezzi neri (ex bianchi)
+        self.griglia[0][0] = Piece('Torre', 'nero', (0, 0), vita=3, attacco=2)
+        self.griglia[0][1] = Piece('Cavallo', 'nero', (0, 1))
+        self.griglia[0][2] = Piece('Alfiere', 'nero', (0, 2), vita=1, attacco=3)
+        self.griglia[0][3] = Piece('Queen', 'nero', (0, 3))
+        self.griglia[0][4] = Piece('Re', 'nero', (0, 4))
+        self.griglia[0][5] = Piece('Alfiere', 'nero', (0, 5), vita=1, attacco=3)
+        self.griglia[0][6] = Piece('Cavallo', 'nero', (0, 6))
+        self.griglia[0][7] = Piece('Torre', 'nero', (0, 7), vita=3, attacco=2)
         for i in range(8):
-            self.griglia[1][i] = Piece('Pedone', 'bianco', (1, i))
+            self.griglia[1][i] = Piece('Pedone', 'nero', (1, i))
 
-        # Posizionamento dei pezzi neri
-        self.griglia[7][0] = Piece('Torre', 'nero', (7, 0))
-        self.griglia[7][1] = Piece('Cavallo', 'nero', (7, 1))
-        self.griglia[7][2] = Piece('Alfiere', 'nero', (7, 2))
-        self.griglia[7][3] = Piece('Queen', 'nero', (7, 3))
-        self.griglia[7][4] = Piece('Re', 'nero', (7, 4))
-        self.griglia[7][5] = Piece('Alfiere', 'nero', (7, 5))
-        self.griglia[7][6] = Piece('Cavallo', 'nero', (7, 6))
-        self.griglia[7][7] = Piece('Torre', 'nero', (7, 7))
+        # Posizionamento dei pezzi bianchi (ex neri)
+        self.griglia[7][0] = Piece('Torre', 'bianco', (7, 0), vita=3, attacco=2)
+        self.griglia[7][1] = Piece('Cavallo', 'bianco', (7, 1))
+        self.griglia[7][2] = Piece('Alfiere', 'bianco', (7, 2), vita=1, attacco=3)
+        self.griglia[7][3] = Piece('Queen', 'bianco', (7, 3), vita=4, attacco=3)
+        self.griglia[7][4] = Piece('Re', 'bianco', (7, 4))
+        self.griglia[7][5] = Piece('Alfiere', 'bianco', (7, 5), vita=1, attacco=3)
+        self.griglia[7][6] = Piece('Cavallo', 'bianco', (7, 6))
+        self.griglia[7][7] = Piece('Torre', 'bianco', (7, 7), vita=3, attacco=2)
         for i in range(8):
-            self.griglia[6][i] = Piece('Pedone', 'nero', (6, i))
+            self.griglia[6][i] = Piece('Pedone', 'bianco', (6, i), vita=2, attacco=1)
 
     def stampa_scacchiera(self):
         print("-" * 41)
@@ -59,15 +59,12 @@ class Board:
         # Controlla se la mossa comporta una cattura
         c = self.stockfish.will_move_be_a_capture(move)
         print(f"[DEBUG] La mossa comporta una cattura? {c}")
-        if(str(c)=="Capture.NO_CAPTURE"):
-            capture=False
-        else:
-            capture=True
+        capture = str(c) != "Capture.NO_CAPTURE"
 
-        if capture:
-            target_piece = self.griglia[rm][cm]
-            moving_piece = self.griglia[rp][cp]
+        moving_piece = self.griglia[rp][cp]
+        target_piece = self.griglia[rm][cm]
 
+        if capture and target_piece:
             print(f"[DEBUG] Pezzo che si muove: {moving_piece.tipo} ({moving_piece.colore})")
             print(
                 f"[DEBUG] Pezzo bersaglio: {target_piece.tipo if target_piece else 'None'} ({target_piece.colore if target_piece else 'None'})")
@@ -78,24 +75,58 @@ class Board:
 
             if target_piece.vita <= 0:
                 print(f"[DEBUG] Il pezzo {target_piece.tipo} ({target_piece.colore}) è stato catturato!")
-                # Il pezzo bersaglio è stato catturato
-                self.stockfish.make_moves_from_current_position([move])
                 self.griglia[rm][cm] = moving_piece  # Sposta il pezzo
                 self.griglia[rp][cp] = None  # La vecchia posizione è ora vuota
                 moving_piece.posizione = (rm, cm)  # Aggiorna la posizione del pezzo
-            else:
-                # Se il pezzo bersaglio non è morto, il movimento non viene eseguito sulla griglia
-                print(f"Il pezzo {target_piece.tipo} ({target_piece.colore}) ha resistito all'attacco!")
 
         else:
             # Nessuna cattura, semplicemente esegui il movimento
             print(f"[DEBUG] Nessuna cattura. Eseguendo la mossa...")
-            self.stockfish.make_moves_from_current_position([move])
             self.griglia[rm][cm] = self.griglia[rp][cp]  # Sposta il pezzo
             self.griglia[rp][cp] = None  # La vecchia posizione è ora vuota
             self.griglia[rm][cm].posizione = (rm, cm)  # Aggiorna la posizione del pezzo
             print(
                 f"[DEBUG] Pezzo spostato: {self.griglia[rm][cm].tipo} ({self.griglia[rm][cm].colore}) alla posizione ({rm}, {cm})")
+
+        # Controlla se il gioco è finito
+        if self.is_game_finished():
+            self.save_log()  # Salva il log al termine del gioco
+            return True
+
+        return False
+
+    def generate_fen(self,nextturn):
+        fen_rows = []
+        for row in self.griglia:
+            empty_count = 0
+            fen_row = ""
+            for cell in row:
+                if cell is None:
+                    empty_count += 1
+                else:
+                    if empty_count > 0:
+                        fen_row += str(empty_count)
+                        empty_count = 0
+                    piece_char = self.get_piece_char(cell)
+                    fen_row += piece_char
+            if empty_count > 0:
+                fen_row += str(empty_count)
+            fen_rows.append(fen_row)
+
+        # Modifica qui per far sì che Stockfish giochi come nero
+        fen = "/".join(fen_rows) + f" {nextturn} KQkq - 0 1"
+        return fen
+
+    def get_piece_char(self, piece):
+        piece_map = {
+            "Re": "k" if piece.colore == "nero" else "K",
+            "Queen": "q" if piece.colore == "nero" else "Q",
+            "Torre": "r" if piece.colore == "nero" else "R",
+            "Alfiere": "b" if piece.colore == "nero" else "B",
+            "Cavallo": "n" if piece.colore == "nero" else "N",
+            "Pedone": "p" if piece.colore == "nero" else "P",
+        }
+        return piece_map.get(piece.tipo, "?")
 
     def is_game_finished(self):
         # Controlla se Stockfish indica che la partita è finita
