@@ -1,16 +1,11 @@
 from flask import Flask, render_template, request, jsonify
-from stockfish import Stockfish
 from Board import Board
+import CustomEngine
 
 app = Flask(__name__)
 
-# Inizializza Stockfish
-stockfish_path = "stockfish/stockfish-windows-x86-64-avx2.exe"  # Aggiorna con il percorso corretto
-stockfish = Stockfish(path=stockfish_path)
-stockfish.set_skill_level(20)  # Imposta il livello da 0 a 20
-
 # Inizializza la scacchiera
-board = Board(stockfish)
+board = Board()  # Non passare Stockfish
 
 @app.route('/')
 def index():
@@ -23,43 +18,43 @@ def move():
     cp = data['cp']
     rm = data['rm']
     cm = data['cm']
+    print(f"[DEBUG] Turno= {board.turn}")
+    print(f"[DEBUG] Ricevuto richiesta di mossa: da ({rp}, {cp}) a ({rm}, {cm})")
 
-    stockfish_move = f"{chr(cp + ord('a'))}{8 - rp}{chr(cm + ord('a'))}{8 - rm}"
-    if stockfish.is_move_correct(stockfish_move):
-        board.makemove(rp, cp, rm, cm)
-        # Aggiorna sempre la posizione di Stockfish
-        fen = board.generate_fen("b")
-        board.stockfish.set_fen_position(fen)
-        if board.is_game_finished():
-            return jsonify(status="finished", message="Game Over!")
+    # Mappa i turni 'w' e 'b' ai colori 'bianco' e 'nero'
+    turno_colore = "bianco" if board.turn == "w" else "nero"
+
+    # Verifica se la mossa è valida utilizzando la logica della classe `Board`
+    if board.griglia[rp][cp] is not None and board.griglia[rp][cp].colore == turno_colore:
+        print(f"[DEBUG] Mossa valida per il pezzo {board.griglia[rp][cp].tipo} ({board.griglia[rp][cp].colore})")
+        possible_moves = board.griglia[rp][cp].get_possible_moves(board)
+        print(f"[DEBUG] Mosse possibili per il pezzo: {possible_moves}")
+
+        if (rm, cm) in possible_moves:
+            print(f"[DEBUG] Mossa scelta è valida: da ({rp}, {cp}) a ({rm}, {cm})")
+            board.makemove(rp, cp, rm, cm)
+            fen = board.generate_fen("b" if board.turn == "w" else "w")
+            print(f"[DEBUG] FEN generata: {fen}")
+            board.stampa_scacchiera()
+            if board.is_game_finished():
+                print(f"[DEBUG] Gioco finito!")
+                return jsonify(status="finished", message="Game Over!")
+            else:
+                return jsonify(status="ok", message="Move made.")
         else:
-            print(stockfish.get_board_visual())
-            return jsonify(status="ok", message="Move made.")
+            print(f"[DEBUG] Mossa scelta non è valida.")
     else:
-        print(stockfish.get_board_visual())
-        return jsonify(status="error", message="Invalid move.")
+        print(f"[DEBUG] Mossa non valida: il pezzo selezionato non appartiene al turno corrente o la posizione è vuota.")
 
+    board.stampa_scacchiera()
+    return jsonify(status="error", message="Invalid move.")
 
 @app.route('/ai_move', methods=['POST'])
 def ai_move():
-    move = stockfish.get_best_move()
+    move = board.getbestmove()
+    print(f"[DEBUG] mossa di catfish: {move}")
 
-    # Gestione delle mosse speciali (es. arrocco)
-    if move in ["e1g1", "e8g8"]:  # Arrocco corto
-        if move == "e1g1":
-            board.makemove(0, 4, 0, 6)  # Re bianco
-            board.makemove(0, 7, 0, 5)  # Torre bianca
-        elif move == "e8g8":
-            board.makemove(7, 4, 7, 6)  # Re nero
-            board.makemove(7, 7, 7, 5)  # Torre nera
-    elif move in ["e1c1", "e8c8"]:  # Arrocco lungo
-        if move == "e1c1":
-            board.makemove(0, 4, 0, 2)  # Re bianco
-            board.makemove(0, 0, 0, 3)  # Torre bianca
-        elif move == "e8c8":
-            board.makemove(7, 4, 7, 2)  # Re nero
-            board.makemove(7, 0, 7, 3)  # Torre nera
-    else:
+    if move:
         cp = ord(move[0]) - ord('a')
         rp = 8 - int(move[1])
         cm = ord(move[2]) - ord('a')
@@ -67,15 +62,14 @@ def ai_move():
 
         board.makemove(rp, cp, rm, cm)
 
-    # Aggiorna sempre la posizione di Stockfish
-    fen = board.generate_fen("w")
-    board.stockfish.set_fen_position(fen)
-
-    if board.is_game_finished():
-        return jsonify(status="finished", message="Game Over!")
+        fen = board.generate_fen("w" if board.turn == "b" else "b")
+        board.stampa_scacchiera()
+        if board.is_game_finished():
+            return jsonify(status="finished", message="Game Over!")
+        else:
+            return jsonify(status="ok", message="AI move made.")
     else:
-        print(stockfish.get_board_visual())
-        return jsonify(status="ok", message="AI move made.")
+        return jsonify(status="error", message="No valid move found.")
 
 
 if __name__ == '__main__':
